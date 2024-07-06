@@ -13,7 +13,7 @@ public:
 
 private:
     uint8_t bcdToDec(uint8_t bcd);
-    
+    unit8_t decToBcd(uint8_t dec);
     uint8_t seconds;
     uint8_t minutes;
     uint8_t hours;
