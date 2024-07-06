@@ -21,6 +21,7 @@ virtual unsigned char readRegister(unsigned int registerAddress);
 virtual unsigned char* readRegisters(unsigned int number, unsigned int
 fromAddress=0);
 virtual int writeRegister(unsigned int registerAddress, unsigned char value);
+virtual int writeRegisters(unsigned int startAddress, unsigned char* data, unsigned int length);
 virtual void debugDumpRegisters(unsigned int number = 0xff);
 virtual void close();
 virtual ~I2CDevice();
