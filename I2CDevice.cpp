@@ -28,8 +28,8 @@ this->open();
 * @return 1 on failure to open to the bus or device, 0 on success.
 */
 int I2CDevice::open(){
-string name;
-if(this->bus==0) name = I2C_0;
+string name= (this->bus == 0) ? I2C_0 : I2C_1;
+if((this->file = ::open(name.c_str(), O_RDWR))<0);
 else name = I2C_1;
 if((this->file=::open(name.c_str(), O_RDWR)) < 0){
 perror("I2C: failed to open the bus\n");
@@ -56,6 +56,21 @@ perror("I2C: Failed write to the device\n");
 return 1;
 }
 return 0;
+}
+
+int I2CDevice::writeRegisters(unsigned int startAddress, unsigned char* data, unsigned int length) {
+    unsigned char* buffer = new unsigned char[length + 1];
+    buffer[0] = startAddress;
+    for (unsigned int i = 0; i < length; i++) {
+        buffer[i + 1] = data[i];
+    }
+    if (::write(this->file, buffer, length + 1) != (int)(length + 1)) {
+        perror("I2C: Failed to write to the device\n");
+        delete[] buffer;
+        return 1;
+    }
+    delete[] buffer;
+    return 0;
 }
 /**
 * Write a single value to the I2C device. Used to set up the device to read from a
