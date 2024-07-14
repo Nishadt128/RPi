@@ -1,6 +1,7 @@
 #include "DS3231.h"
 #include <iostream>
 #include <iomanip>
+#include <cstdio>
 
 using namespace std;
 
@@ -52,5 +53,7 @@ void DS3231::setTime(uint8_t seconds, uint8_t minutes, uint8_t hours, uint8_t da
     buffer[5] = decToBcd(month);
     buffer[6] = decToBcd(year);
 
-    this->writeRegisters(0x00, buffer, 7);
+    if(this->writeRegisters(0x00, buffer, 7) != 0){
+        derr << "Failed to write time to DS3231" << endl:
+        }
 }
