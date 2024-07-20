@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdio>
+#include <ctime>
 
 using namespace std;
 
@@ -57,3 +58,38 @@ void DS3231::setTime(uint8_t seconds, uint8_t minutes, uint8_t hours, uint8_t da
         derr << "Failed to write time to DS3231" << endl:
         }
 }
+void DS3231::setAlarm1(uint8_t seconds, uint8_t minutes, uint8_t hours){
+    unsigned char buffer[3];
+    
+    buffer[0]= decToBcd(seconds);
+    buffer[1]= decToBcd(minutes);
+    buffer[2]= decToBcd(hours);
+    
+    this->writeRegisters(0x0B, buffer, 3);
+}
+
+void DS3231::setAlarm2(uint8_t minutes, uint8_t hours){
+    unsigned char buffer[2];
+    
+    buffer[0]= decToBcd(minutes);
+    buffer[1]= decToBcd(hours);
+   
+    this->writeRegisters(0x07, buffer, 2);
+}
+
+void DS3231::printTemperature(){
+    unsigned char* buffer = this->readRegisters(2, 0x11);
+
+    if (buffer == nullptr) {
+        cerr << "Failed to read temperature from DS3231" << endl;
+        return;
+        }
+    int8_t temp_msb = buffer[0];
+    uint8_t temp_lsb = buffer[1]>>6;
+    
+    float temperature = temp_msb + (temp_lsb*0.25);
+    cout << "Temperature: " << temperature << "C" << endl;   
+
+    delete[] buffer;
+}
+
