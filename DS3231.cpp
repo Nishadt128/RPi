@@ -6,7 +6,9 @@
 
 using namespace std;
 
-DS3231::DS3231(unsigned int bus, unsigned int device) : EE513::I2CDevice(bus, device) {}
+DS3231::DS3231(unsigned int bus, unsigned int device) : EE513::I2CDevice(bus, device) {
+    lastSetTime = time(nullptr);
+}
 
 uint8_t DS3231::bcdToDec(uint8_t bcd) {
     return ((bcd >> 4) * 10 + (bcd & 0x0F));
@@ -59,13 +61,19 @@ void DS3231::setTime(uint8_t seconds, uint8_t minutes, uint8_t hours, uint8_t da
         }
 }
 void DS3231::setAlarm1(uint8_t seconds, uint8_t minutes, uint8_t hours){
-    unsigned char buffer[3];
+    unsigned char buffer[4];
     
     buffer[0]= decToBcd(seconds);
     buffer[1]= decToBcd(minutes);
     buffer[2]= decToBcd(hours);
+    buffer[3]=0x80;
     
-    this->writeRegisters(0x0B, buffer, 3);
+    this->writeRegisters(0x07, buffer, 4);
+
+    unsigned char controlReg[2];
+    this->readRegisters(2, 0x0E);
+    controlReg[0] |=0x01;
+    this->writeRegisters(0x0E,controlReg, 1);
 }
 
 void DS3231::setAlarm2(uint8_t minutes, uint8_t hours){
@@ -73,8 +81,14 @@ void DS3231::setAlarm2(uint8_t minutes, uint8_t hours){
     
     buffer[0]= decToBcd(minutes);
     buffer[1]= decToBcd(hours);
+    buffer[2]= 0x80;
    
-    this->writeRegisters(0x07, buffer, 2);
+    this->writeRegisters(0x0B, buffer, 3);
+    
+    unsigned char controlReg[2];
+    this->readRegisters(2, 0x0E);
+    controlReg[0] |=0x02;
+    this->writeRegisters(0x0E,controlReg, 1);
 }
 
 void DS3231::printTemperature(){
@@ -92,4 +106,66 @@ void DS3231::printTemperature(){
 
     delete[] buffer;
 }
+
+void DS3231::checkAlarms(){
+    unsigned char* buffer = this->readRegisters(1,0x0F);
+    
+    if(buffer == nullptr){
+        cerr << "Failed to read alarm status from DS3231" << endl;
+        return;
+    }
+    uint8_t status = buffer[0];
+    bool alarm1Triggered = status & 0x01;
+    bool alarm2Triggered = status & 0x02;
+    
+    if(alarm1Triggered){
+        cout << "Alarm 1 triggered" << endl;
+        status &= ~0x01;
+    }
+    if(alarm2Triggered){
+        cout << "Alarm 2 triggered" << endl;
+        status &= ~0x01;
+    }
+    
+    delete[] buffer;
+}
+
+void DS3231::setSquareWave(uint8_t frequency){
+    unsigned char controlReg = 0x00;
+    switch(frequency){
+        case 1: controlReg = 0x10; break;
+        case 2: controlReg = 0x11; break;
+        case 4: controlReg = 0x12; break;
+        case 8: controlReg = 0x13; break;
+        default: controlReg = 0x00; break;
+    }
+    this->writeRegisters(0x0E, &controlReg, 1);
+}
+
+void DS3231::setInterruptSignal(bool enable){
+    unsigned char controlReg[2];
+    this->readRegisters(2, 0x0E);
+    
+    if(enable){
+        controlReg[0] |= 0x80;
+    }else{
+        controlReg[0] &= ~0x80;
+    }
+    this->writeRegisters(0x0E, controlReg ,1);
+}
+
+void DS3231::printElapsedTime(){
+    time_t currentTime = time(nullptr);
+    double elapsed = difftime(currentTime, lastSetTime);
+    
+    int hours = static_cast<int>(elapsed)/3600;
+    int minutes = (static_cast<int>(elapsed)%3600)/60;
+    int seconds = static_cast<int>(elapsed)%60;
+    
+    cout << "Time elapsed since last set:"
+         <<setw(2)<<setfill('0')<<hours<<":"
+         <<setw(2)<<setfill('0')<<minutes<<":"
+         <<setw(2)<<setfill('0')<<seconds<<endl;
+}
+
 
