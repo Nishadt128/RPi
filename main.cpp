@@ -21,9 +21,9 @@ void setCurrentTime(DS3231& rtc) {
    uint8_t seconds, minutes, hours, dayOfWeek, dayOfMonth, month, year;
 
     seconds = 0;
-    minutes = 15 ;hours= 20;
-    dayOfWeek = 7; 
-    dayOfMonth = 20;
+    minutes = 00 ;hours= 14;
+    dayOfWeek = 1; 
+    dayOfMonth = 21;
     month = 7;
     year = 24;
 
@@ -34,12 +34,16 @@ void setAlarm1(DS3231& rtc){
     cout << "Setting alarm 1 for 1 minute" << endl;
     rtc.setAlarm1(0,1,0);
     cout << "Alarm 1 set" <<endl;
+    this_thread::sleep_for(chrono::minutes(1));
+    rtc.checkAlarms();
 }
 
 void setAlarm2(DS3231& rtc){
     cout<< "Setting Alarm 2 for 2 mintues"<<endl;
     rtc.setAlarm2(2,0);
     cout << "Alarm 2 set" << endl;
+    this_thread::sleep_for(chrono::minutes(2));
+    rtc.checkAlarms();
 }
 
 void displayTemperature(DS3231& rtc){
@@ -48,6 +52,15 @@ void displayTemperature(DS3231& rtc){
 
 void displaySetTime(DS3231& rtc) {
     rtc.printTime();
+}
+
+void setSquareWave(DS3231& rtc, uint8_t frequency){
+    rtc.setSquareWave(frequency);
+    cout<<"Square wave set to"<< static_cast<int>(frequency)<<"Hz"<<endl;
+}
+
+void displayElapsedTime(DS3231& rtc){
+	rtc.printElapsedTime();
 }
 
 int main(){
@@ -73,6 +86,15 @@ int main(){
 			break;
 		case '5':
 			displayTemperature(rtc);
+			break;
+		case '6':
+			uint8_t frequency;
+			cout<<"Enter frequency (1,2,4,8):";
+			cin>>frequency;
+			setSquareWave(rtc,frequency);
+			break;
+		case '7':
+			displayElapsedTime(rtc);
 			break;
 		default:
 			cout << "Invalid choice. Please try again.\n";
