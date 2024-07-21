@@ -16,12 +16,16 @@ public:
     void setAlarm1(uint8_t seconds, uint8_t minutes, uint8_t hours);
     void setAlarm2(uint8_t minutes, uint8_t hours);
     void printTemperature();
+    void checkAlarms();
+    void setSquareWave(uint8_t frequency);
+    void setInterruptSignal(bool enable)
 
 private:
     uint8_t seconds, minutes, hours, dayOfWeek, dayOfMonth, month,year;
     uint8_t bcdToDec(uint8_t bcd);
     uint8_t decToBcd(uint8_t dec);
     float temperature;
+    time_t lastSetTime;
 };
 
 #endif
