@@ -6,7 +6,7 @@
   #define CLIENTID "rpi2"
   #define AUTHMETHOD "user1"
   #define AUTHTOKEN "user1"
-  #define TOPIC "ee513/CPUTemp"
+  #define TOPIC "Sensor/Temp"
   #define PAYLOAD "Hello World!"
   #define QOS 1
   #define TIMEOUT 10000L
